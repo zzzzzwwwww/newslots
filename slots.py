@@ -11,6 +11,8 @@ def get_lines(themeid):
     return ALLLINES[themeid]
 
 def get_reels(themeid,freespin):
+    if freespin==4:
+        return THEME_CONFIG[themeid]['reels_B']
     if freespin==3:
         return THEME_CONFIG[themeid]['reels_H']
     if freespin==2:
@@ -48,7 +50,7 @@ def spin_core(themeid,freespin,linecount):
     cols = len(THEME_CONFIG[themeid]['rows'])
     itemlist=copy.deepcopy(itemlist1)
 
-    if freespin==2:
+    if freespin==4:
         if themeid==ZEUS_THEME:
             for k,v in zeus_bonus.items():
                 itemlist[k[0]][k[1]]=v
@@ -73,14 +75,23 @@ def spin_core(themeid,freespin,linecount):
                 zeus_bonus=dict()
     elif freespin==1:
         if themeid==ZEUS_THEME:
-            col=random.randint(0,4)
-            for i in range(3):
-                k=random.randint(1,5)
-                itemlist[col][i]=-k if k>1 else 2
-
-
-
-
+            flag=0
+            for j in range(5):
+                if random.random()<THEME_CONFIG[themeid]['free_spin'][0][j]:
+                    flag=1
+                    for i in range(3):
+                        k=random.randint(1,5)
+                        itemlist[j][i]=-k if k>1 else 2
+            if not flag:
+                s=0
+                k=random.random()
+                for j in range(5):
+                    s+=THEME_CONFIG[themeid]['free_spin'][0][j]
+                    if s>=k:
+                        for i in range(3):
+                            k=random.randint(1,5)
+                            itemlist[j][i]=-k if k>1 else 2
+                        break
     for i in range(linecount):
         last_k = 2
         bonus = 0
@@ -127,7 +138,7 @@ def spin_core(themeid,freespin,linecount):
         exit('both bonus and scatter')
     return [itemlist,resultlist,sumreward,bonus,scatter, five, six]
 
-SPINTYPE=["normal spin", "free spin", "wild spin", 'high_spin']
+SPINTYPE=["normal spin", "free spin", "wild spin", 'high_spin', 'bonus_spin']
 def spin_result(themeid,freespin,run_times=10000):
     linecount=len(ALLLINES[themeid])
     total_cost=run_times*linecount
@@ -147,12 +158,12 @@ def spin_result(themeid,freespin,run_times=10000):
         if ret[3]>=3:
             bonus_times+=1
             if themeid==ZEUS_THEME:
-                a=[spin_core(themeid,2,linecount)[2] for f in range(THEME_CONFIG[ZEUS_THEME]['pay'][0][2])]
+                a=[spin_core(themeid,4,linecount)[2] for f in range(THEME_CONFIG[ZEUS_THEME]['pay'][0][ret[3]-1])]
                 win+=sum(a)
         if ret[4]>=3:
             assert(freespin!=1)
             scatter_times+=1
-            k=THEME_CONFIG[themeid]['pay'][1][2]
+            k=THEME_CONFIG[themeid]['pay'][1][ret[4]-3]
             a=[spin_core(themeid,1,linecount)[2] for f in range(k)]
             win+=sum(a)
         totalwin+=win
@@ -207,10 +218,12 @@ if __name__=='__main__':
         run_times=int(argv[1])
         themeids=map(int, argv[2:]) if len(argv)>2 else THEME_CONFIG.keys()
         for themeid in themeids:
-            for i in range(4):
+            k=4 if themeid!=ZEUS_THEME else 5
+            for i in range(k):
                 spin_result(themeid,i,run_times=run_times)
     except Exception, e:
         print '|'.join(traceback.format_exception(e.__class__,e,exc_info()[2]))
         for themeid in THEME_CONFIG.keys():
-            for i in range(4):
+            k=4 if themeid!=ZEUS_THEME else 5
+            for i in range(k):
                 spin_result(themeid,i)
