@@ -86,7 +86,7 @@ def spin_core(themeid,freespin,linecount):
                 s=0
                 k=random.random()
                 for j in range(5):
-                    s+=THEME_CONFIG[themeid]['free_spin'][0][j]
+                    s+=THEME_CONFIG[themeid]['free_spin'][1][j]
                     if s>=k:
                         for i in range(3):
                             k=random.randint(1,5)
