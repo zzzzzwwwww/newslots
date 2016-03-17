@@ -204,10 +204,10 @@ def spin_result(themeid,freespin,run_times=10000):
         vst=[[0]*r for r in rows]
         for line, longest in ret[1]:
             for col in range(longest):
-                items_count1[ret[0][col][ALLLINES[themeid][line][col]]]  +=1
                 row=ALLLINES[themeid][line][col]
                 if not vst[col][row]:
                     pos_count[col][row]+=1
+                    items_count1[ret[0][col][row]]+=1
                     vst[col][row]=1
     for win in allwins+[0]:
         if win:
