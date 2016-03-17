@@ -137,6 +137,10 @@ def spin_core(themeid,freespin,linecount):
         print themeid, itemlist
         exit('both bonus and scatter')
     return [itemlist,resultlist,sumreward,bonus,scatter, five, six]
+def find_add(conf, to_add, k):
+    for i, v in enumerate(conf):
+        if k>=v:
+            to_add[i]+=1
 
 SPINTYPE=["normal spin", "free spin", "wild spin", 'high_spin', 'bonus_spin']
 def spin_result(themeid,freespin,run_times=10000):
@@ -146,6 +150,19 @@ def spin_result(themeid,freespin,run_times=10000):
     bigwin=megawin=superwin=0
     five=six=0
     allwins=[]
+    fspin=t_fspin=fspin_coins=0
+    bspin=t_bspin=bspin_coins=0
+    items_count=[0]*len(THEME_CONFIG[themeid]['pay'])
+    items_count1=[0]*len(THEME_CONFIG[themeid]['pay'])
+    big_wins=[0]*len(BIG_WIN_REWARD)
+    win_strip_times=[0]*len(WIN_STRIP_TIMES)
+    win_strip_count=0
+    win_strip_winning=[0]*len(WIN_STRIP_WINNING)
+    win_strip_win=0
+    rows=THEME_CONFIG[themeid]['rows']
+    pos_count=[[0]*r for r in rows]
+    pos_count1=[0]*len(POSITION_COUNT)
+    allpos=[]
     for _ in range(run_times):
         ret=spin_core(themeid,freespin, linecount)
         win=ret[2]
@@ -158,21 +175,66 @@ def spin_result(themeid,freespin,run_times=10000):
         if ret[3]>=3:
             bonus_times+=1
             if themeid==ZEUS_THEME:
-                a=[spin_core(themeid,4,linecount)[2] for f in range(THEME_CONFIG[ZEUS_THEME]['pay'][0][ret[3]-1])]
-                win+=sum(a)
+                k=THEME_CONFIG[ZEUS_THEME]['pay'][0][ret[3]-1]
+                a=[spin_core(themeid,4,linecount)[2] for f in range(k)]
+                bspin+=1
+                t_bspin+=k
+                s=sum(a)
+                bspin_coins+=s
+                win+=s
         if ret[4]>=3:
             assert(freespin!=1)
             scatter_times+=1
-            k=THEME_CONFIG[themeid]['pay'][1][ret[4]-3]
+            k=THEME_CONFIG[themeid]['pay'][1][ret[4]-1]
             a=[spin_core(themeid,1,linecount)[2] for f in range(k)]
-            win+=sum(a)
+            fspin+=1
+            t_fspin+=k
+            s=sum(a)
+            fspin_coins+=s
+            win+=s
         totalwin+=win
-        if   win>=18*linecount: superwin+=1
-        elif win>=12*linecount: megawin+=1
-        elif win>=6*linecount: bigwin+=1
+        find_add(BIG_WIN_REWARD, big_wins, win/linecount)
         max_reward=max(max_reward, win)
         allwins.append(win)
-    print '-----------theme %d: %s------------------' %  (themeid, SPINTYPE[freespin])
+        allpos.append(ret[1])
+        for c in ret[0]:
+            for r in c:
+                if r<0: r=2
+                items_count[r]+=1
+        vst=[[0]*r for r in rows]
+        for line, longest in ret[1]:
+            for col in range(longest):
+                items_count1[ret[0][col][ALLLINES[themeid][line][col]]]  +=1
+                row=ALLLINES[themeid][line][col]
+                if not vst[col][row]:
+                    pos_count[col][row]+=1
+                    vst[col][row]=1
+    for win in allwins+[0]:
+        if win:
+            win_strip_count+=1
+            win_strip_win+=win
+        else:
+            find_add(WIN_STRIP_TIMES, win_strip_times, win_strip_count)
+            find_add(WIN_STRIP_WINNING, win_strip_winning, win_strip_win/linecount)
+            win_strip_count=win_strip_win=0
+    for i,t in enumerate( POSITION_COUNT ):
+        cnt=[[0]*_ for _ in rows]
+        for pos in allpos:
+            vst=[[0]*_ for _ in rows]
+            for line,longest in pos:
+                for col in range(longest):
+                    row=ALLLINES[themeid][line][col]
+                    if not vst[col][row]:
+                        cnt[col][row]+=1
+                        vst[col][row]=1
+            if min(min(x) for x in cnt)>=t:
+                pos_count1[i]+=1
+                cnt=[[0]*_ for _ in rows]
+
+
+
+
+    print '-----------theme %d: %s,  runtimes: %d------------------' %  (themeid, SPINTYPE[freespin], run_times)
     print 'max_reward/bet',  max_reward*1.0/linecount
     print 'scatter_times ratio: ', scatter_times*1.0/run_times,'bonus_times ratio: ', bonus_times*1.0/run_times
     print 'win_times/run_times: ', win_times*1.0/run_times, 'total_win/win_times: ', totalwin*1.0/win_times
@@ -181,6 +243,15 @@ def spin_result(themeid,freespin,run_times=10000):
     print 'total_win %d, total_cost %d, return rate %f' % (totalwin, total_cost, totalwin*1.0/total_cost)
     group= [(k, len(list(v))) for k, v in groupby(allwins, key=lambda x: x>0)]
     print 'max winning streak', max([v for k,v in group if k]+[0]),  ', max losing streak', max([v for k,v in group if not k]+[1])
+    print 'free_spin :', fspin*10./run_times, t_fspin*1.0/run_times, fspin_coins*1.0/run_times
+    print 'bonus_spin :', bspin*10./run_times, t_bspin*1.0/run_times, bspin_coins*1.0/run_times
+    print 'items_count', map(lambda x: x*1.0/run_times, items_count)
+    print 'items_count1', map(lambda x: x*1.0/run_times, items_count1)
+    print 'big_win: ', map(lambda x: x*1.0/run_times, big_wins)
+    print 'win_strip_times: ', map(lambda x: x*1.0/run_times, win_strip_times)
+    print 'win_strip_winning: ', map(lambda x: x*1.0/run_times, win_strip_winning)
+    print 'position_count: ', [map(lambda x: x*1.0/run_times, p) for p in pos_count]
+    print 'position_count1: ', map(lambda x: x*1.0/run_times, pos_count1)
     return totalwin*1.0/total_cost
     #aver=totalwin*1.0/run_times
     #print 'fangcha', sum(map(lambda win: (win-aver)*(win-aver), allwins))/run_times
