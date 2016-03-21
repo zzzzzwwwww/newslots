@@ -162,7 +162,7 @@ def spin_result(themeid,freespin,run_times=10000):
     rows=THEME_CONFIG[themeid]['rows']
     pos_count=[[0]*r for r in rows]
     pos_count1=[0]*len(POSITION_COUNT)
-    allpos=[]
+    cnt=[[[0]*_ for _ in rows] for i in range(len(POSITION_COUNT))]
     for _ in range(run_times):
         ret=spin_core(themeid,freespin, linecount)
         win=ret[2]
@@ -196,7 +196,7 @@ def spin_result(themeid,freespin,run_times=10000):
         find_add(BIG_WIN_REWARD, big_wins, win/linecount)
         max_reward=max(max_reward, win)
         allwins.append(win)
-        allpos.append(ret[1])
+     #   allpos.append(ret[1])
         for c in ret[0]:
             for r in c:
                 if r<0: r=2
@@ -209,6 +209,17 @@ def spin_result(themeid,freespin,run_times=10000):
                     pos_count[col][row]+=1
                     items_count1[ret[0][col][row]]+=1
                     vst[col][row]=1
+        for t in range(len(POSITION_COUNT)):
+            vst=[[0]*_ for _ in rows]
+            for line,longest in ret[1]:
+                for col in range(longest):
+                    row=ALLLINES[themeid][line][col]
+                    if not vst[col][row]:
+                        cnt[t][col][row]+=1
+                        vst[col][row]=1
+            if min(min(x) for x in cnt[t])>=POSITION_COUNT[t]:
+                pos_count1[t]+=1
+                cnt[t]=[[0]*_ for _ in rows]
     for win in allwins+[0]:
         if win:
             win_strip_count+=1
@@ -217,22 +228,6 @@ def spin_result(themeid,freespin,run_times=10000):
             find_add(WIN_STRIP_TIMES, win_strip_times, win_strip_count)
             find_add(WIN_STRIP_WINNING, win_strip_winning, win_strip_win/linecount)
             win_strip_count=win_strip_win=0
-    for i,t in enumerate( POSITION_COUNT ):
-        cnt=[[0]*_ for _ in rows]
-        for pos in allpos:
-            vst=[[0]*_ for _ in rows]
-            for line,longest in pos:
-                for col in range(longest):
-                    row=ALLLINES[themeid][line][col]
-                    if not vst[col][row]:
-                        cnt[col][row]+=1
-                        vst[col][row]=1
-            if min(min(x) for x in cnt)>=t:
-                pos_count1[i]+=1
-                cnt=[[0]*_ for _ in rows]
-
-
-
 
     print '-----------theme %d: %s,  runtimes: %d------------------' %  (themeid, SPINTYPE[freespin], run_times)
     print 'max_reward/bet',  max_reward*1.0/linecount
