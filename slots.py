@@ -125,8 +125,8 @@ def spin_core(themeid,freespin,linecount):
             if longest_length==6: six=1
         if longest_wild>0:
             longest_length=longest_wild
-            longest_length=min(longest_length,len(paytable[3]))
-            reward = max(reward,paytable[3][longest_length-1])
+            longest_length=min(longest_length,len(paytable[2]))
+            reward = max(reward,paytable[2][longest_length-1])
             if themeid==ZEUS_THEME:
                 reward*=zeus_wild
 
@@ -265,16 +265,16 @@ def check():
                 last=-10000
                 if 1:#themeid not in (2,3):
                     for i in range(len(x)*2):
-                        checknums=(0,1)if themeid!=4 else (0,1,2)
+                        checknums=(0,1)
                         if x[i%len(x)] in checknums:
                             if i-last<l:
                                 print  t,  i, last, l, x
                                 exit('theme %d, 0 1 in same column' % themeid)
                             last=i
-                if t=='reel_W' and themeid==2 and i in (2,3,4):
+                '''if t=='reels_W':
                     for i in range(4,len(x)):
                         if x[i-4:i].count(-1)==0:
-                            exit('theme 2 wild fail')
+                            exit('theme 2 wild fail')'''
 import traceback
 if __name__=='__main__':
     from sys import argv, exc_info
