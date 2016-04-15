@@ -340,6 +340,7 @@ if __name__=='__main__':
     from sys import argv, exc_info
 
     check()
+    run_times=10000
     try:
         run_times=int(argv[1])
         themeids=map(int, argv[2:]) if len(argv)>2 else THEME_CONFIG.keys()
@@ -357,6 +358,6 @@ if __name__=='__main__':
     witch_jackpot=1
     print '\n\n---------------------------------------------------------------------------'
     print 'witch jackpot is open for reels_N and reels_H'
-    spin_result(WITCH_THEME,'reels_N')
-    spin_result(WITCH_THEME,'reels_H')
+    spin_result(WITCH_THEME,'reels_N',run_times=run_times)
+    spin_result(WITCH_THEME,'reels_H',run_times=run_times)
 
