@@ -209,6 +209,8 @@ def spin_result(themeid,freespin,run_times=10000):
     get_jackpot_time=[0,0,0]
     for _ in range(run_times):
         ret=spin_core(themeid,freespin, linecount)
+        win=ret[2]
+
         if witch_jackpot:
             witch_total_jackpot+=linecount
             jackpotcnt=sum(j.count(-1) for j in ret[0])
@@ -216,10 +218,9 @@ def spin_result(themeid,freespin,run_times=10000):
                 get_jackpot+=witch_total_jackpot*THEME_CONFIG[WITCH_THEME]['pay'][0][jackpotcnt-1]+linecount*0.01
                 get_jackpot_time[jackpotcnt-3]+=1
                 win+=get_jackpot
+                witch_total_jackpot=0
+    
         
-           
-            #print ret
-        win=ret[2]
         if ret[2]>0:
             win_times+=1
         if ret[5]:
@@ -283,11 +284,12 @@ def spin_result(themeid,freespin,run_times=10000):
             find_add(WIN_STRIP_WINNING, win_strip_winning, win_strip_win/linecount)
             win_strip_count=win_strip_win=0
 
+
     print '-----------theme %d: %s,  runtimes: %d------------------' %  (themeid, freespin, run_times)
     print 'max_reward/bet',  max_reward*1.0/linecount
     print 'scatter_times ratio: ', scatter_times*1.0/run_times,'bonus_times ratio: ', bonus_times*1.0/run_times
     print 'win_times/run_times: ', win_times*1.0/run_times, 'total_win/win_times: ', totalwin*1.0/win_times
-    print 'bigwin, megawin, superwin', bigwin*1.0/run_times, megawin*1.0/run_times, superwin*1.0/run_times
+    #print 'bigwin, megawin, superwin', bigwin*1.0/run_times, megawin*1.0/run_times, superwin*1.0/run_times
     print 'five in line: ', five*1.0/run_times, ', six in line: ', six*1.0/run_times
     print 'total_win %d, total_cost %d, return rate %f' % (totalwin, total_cost, totalwin*1.0/total_cost)
     group= [(k, len(list(v))) for k, v in groupby(allwins, key=lambda x: x>0)]
