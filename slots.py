@@ -212,10 +212,10 @@ def spin_result(themeid,freespin,run_times=10000):
         win=ret[2]
 
         if witch_jackpot:
-            witch_total_jackpot+=linecount
+            witch_total_jackpot+=linecount*0.01
             jackpotcnt=sum(j.count(-1) for j in ret[0])
             if jackpotcnt>=3:
-                get_jackpot+=witch_total_jackpot*THEME_CONFIG[WITCH_THEME]['pay'][0][jackpotcnt-1]+linecount*0.01
+                get_jackpot+=linecount*THEME_CONFIG[WITCH_THEME]['pay'][0][jackpotcnt-1]+witch_jackpot
                 get_jackpot_time[jackpotcnt-3]+=1
                 win+=get_jackpot
                 witch_total_jackpot=0
