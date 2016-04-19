@@ -111,14 +111,21 @@ def spin_core(themeid,freespin,linecount):
 
     elif freespin=='reels_W':
             if themeid==WITCH_THEME:
+                magic_cnt=0
                 for row in range(len(itemlist[2])):
                     if itemlist[2][row]==3:
                         itemlist[2][row]=2
-                        for col in (0,1,3,4):
-                            p=THEME_CONFIG[themeid]['magic'][col]
-                            for row in range(len(itemlist[col])):
-                                if random.random()<p:
-                                    itemlist[col][row]=2
+                        magic_cnt+=1
+                for col in (0,1,3,4):
+                    p=THEME_CONFIG[themeid]['magic'][col]
+                    flag=0
+                    for m in range(magic_cnt):
+                        for row in range(len(itemlist[col])):
+                            if random.random()<p:
+                                itemlist[col][row]=2
+                                flag=1
+                        if flag==0:
+                            itemlist[col][0]=2
             elif themeid==BUFFALO_THEME:
                 for i in range(len(itemlist)):
                     for j in range(len(itemlist[i])):
