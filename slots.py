@@ -113,12 +113,12 @@ def spin_core(themeid,freespin,linecount):
             if themeid==WITCH_THEME:
                 for row in range(len(itemlist[2])):
                     if itemlist[2][row]==3:
-                        itemlist[2][row]=1
+                        itemlist[2][row]=2
                         for col in (0,1,3,4):
                             p=THEME_CONFIG[themeid]['magic']
                             for row in range(len(itemlist[col])):
                                 if random.random()<p:
-                                    itemlist[col][row]=1
+                                    itemlist[col][row]=2
             elif themeid==BUFFALO_THEME:
                 for i in range(len(itemlist)):
                     for j in range(len(itemlist[i])):
@@ -324,7 +324,7 @@ def spin_result(themeid,freespin,run_times=10000):
             win_strip_count=win_strip_win=0
 
 
-    print '-----------theme %d: %s,  runtimes: %d------------------' %  (themeid, freespin, run_times)
+    print '-----------theme %d: %s,  runtimes: %d, win_times %d------------------' %  (themeid, freespin, run_times,win_times)
     print 'max_reward/bet',  max_reward*1.0/linecount
     print 'scatter_times ratio: ', scatter_times*1.0/run_times,'bonus_times ratio: ', bonus_times*1.0/run_times
     print 'win_times/run_times: ', win_times*1.0/run_times, 'total_win/win_times: ', totalwin*1.0/win_times
