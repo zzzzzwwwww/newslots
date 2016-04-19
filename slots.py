@@ -115,7 +115,7 @@ def spin_core(themeid,freespin,linecount):
                     if itemlist[2][row]==3:
                         itemlist[2][row]=2
                         for col in (0,1,3,4):
-                            p=THEME_CONFIG[themeid]['magic']
+                            p=THEME_CONFIG[themeid]['magic'][col]
                             for row in range(len(itemlist[col])):
                                 if random.random()<p:
                                     itemlist[col][row]=2
