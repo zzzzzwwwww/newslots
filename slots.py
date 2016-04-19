@@ -128,7 +128,7 @@ def spin_core(themeid,freespin,linecount):
     elif freespin=='reels_N':
         if themeid==WITCH_THEME:
             if witch_jackpot:
-                for col in range(5):
+                for col in range(len(itemlist)):
                     if random.random()<THEME_CONFIG[WITCH_THEME]['jackpot'][col]:
                         for row in range(len(itemlist[col])):
                             if itemlist[col][row]==1:
@@ -183,7 +183,7 @@ def spin_core(themeid,freespin,linecount):
                 resultlist.append([i,longest_length])
             reward = paytable[longest_id][longest_length-1]
             if longest_length==5: five=1
-            if longest_length==6: six=1
+            elif longest_length==6: six=1
         if longest_wild>0:
             longest_length=longest_wild
             longest_length=min(longest_length,len(paytable[2]))
@@ -230,10 +230,13 @@ def spin_result(themeid,freespin,run_times=10000):
     cnt=[[[0]*_ for _ in rows] for i in range(len(POSITION_COUNT))]
     global witch_jackpot
     global witch_total_jackpot
-    get_jackpot=0
-    get_jackpot_time=[0,0,0]
+    
     if themeid==BUFFALO_THEME:
         buffalo=[0]*5
+    elif themeid==WITCH_THEME:
+        if witch_jackpot:
+            get_jackpot=0
+            get_jackpot_time=[0,0,0]
     for _ in range(run_times):
         
         ret=spin_core(themeid,freespin, linecount)
@@ -250,9 +253,10 @@ def spin_result(themeid,freespin,run_times=10000):
             witch_total_jackpot+=linecount*0.01
             jackpotcnt=sum(j.count(-1) for j in ret[0])
             if jackpotcnt>=3:
-                get_jackpot+=linecount*THEME_CONFIG[WITCH_THEME]['pay'][0][jackpotcnt-1]+witch_jackpot
+                j=linecount*THEME_CONFIG[WITCH_THEME]['pay'][0][jackpotcnt-1]+witch_total_jackpot
+                get_jackpot+=j
                 get_jackpot_time[jackpotcnt-3]+=1
-                win+=get_jackpot
+                win+=j
                 witch_total_jackpot=0
     
         
@@ -400,4 +404,4 @@ if __name__=='__main__':
             print 'witch jackpot is open for reels_N and reels_H'
             spin_result(WITCH_THEME,'reels_N',run_times=run_times)
             spin_result(WITCH_THEME,'reels_H',run_times=run_times)
-
+            witch_jackpot=0
