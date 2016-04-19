@@ -28,6 +28,13 @@ zeus_bonus = {}
 zeus_bonus_time = 0
 witch_jackpot=0
 witch_total_jackpot=0
+def get_by_pro(p):
+    r=random.random()
+    for k,v in enumerate(p):
+        if r<v:
+            return k
+    #error
+    exit('get_by_pro')
 def spin_core(themeid,freespin,linecount):
     global zeus_bonus
     global zeus_bonus_time
@@ -95,6 +102,13 @@ def spin_core(themeid,freespin,linecount):
             for col in range(len(itemlist)):
                 if 1 in itemlist[col]:
                     itemlist[col]=[1]*4
+        elif themeid==BUFFALO_THEME:
+            for k in range(THEME_CONFIG[themeid]['bonus_spin_buffalo_time']):
+                for i in range(len(itemlist)):
+                    for j in range(len(itemlist[i])):
+                        if itemlist[i][j]!=4 and random.random()<THEME_CONFIG[themeid]['bonus_spin'][k][i*len(itemlist[i])+j]:
+                            itemlist[i][j]=4
+
     elif freespin=='reels_W':
             if themeid==WITCH_THEME:
                 for row in range(len(itemlist[2])):
@@ -105,6 +119,12 @@ def spin_core(themeid,freespin,linecount):
                             for row in range(len(itemlist[col])):
                                 if random.random()<p:
                                     itemlist[col][row]=1
+            elif themeid==BUFFALO_THEME:
+                for i in range(len(itemlist)):
+                    for j in range(len(itemlist[i])):
+                        if itemlist[i][j]==3:
+                            itemlist[i][j]=get_by_pro(THEME_CONFIG[themeid]['change'])
+
     elif freespin=='reels_N':
         if themeid==WITCH_THEME:
             if witch_jackpot:
@@ -116,6 +136,8 @@ def spin_core(themeid,freespin,linecount):
                                 break
                         else:
                             itemlist[col][0]=-1
+        
+
     elif freespin=='reels_H':
         if themeid==WITCH_THEME:
             if witch_jackpot:
@@ -176,6 +198,9 @@ def spin_core(themeid,freespin,linecount):
         print themeid, itemlist
         exit('both bonus and scatter')
 
+    #there is bonus spin in buffalo, no scatter
+    if themeid==BUFFALO_THEME:
+        bonus,scatter=0,bonus
     return [itemlist,resultlist,sumreward,bonus,scatter, five, six]
 
 def find_add(conf, to_add, k):
@@ -207,8 +232,18 @@ def spin_result(themeid,freespin,run_times=10000):
     global witch_total_jackpot
     get_jackpot=0
     get_jackpot_time=[0,0,0]
+    if themeid==BUFFALO_THEME:
+        buffalo=[0]*5
     for _ in range(run_times):
+        
         ret=spin_core(themeid,freespin, linecount)
+
+        if themeid==BUFFALO_THEME:
+            b=sum(j.count(4) for j in ret[0])
+            if b>=11:
+                buffalo[b-11]+=1
+
+
         win=ret[2]
 
         if witch_jackpot:
@@ -304,14 +339,20 @@ def spin_result(themeid,freespin,run_times=10000):
     print 'position_count: ', [map(lambda x: x*1.0/run_times, p) for p in pos_count]
     print 'position_count1: ', map(lambda x: x*1.0/run_times, pos_count1)
 
-    if witch_jackpot:
+    
 
+    if themeid==BUFFALO_THEME:
+        print 'buffalo>=11: ', buffalo, ' in ', run_times, ' spins ', ' total_bet: ', linecount*run_times
+
+    if witch_jackpot:
         print 'witch total jackpot: ', get_jackpot, 'get jackpot times: ', get_jackpot_time, ' in ', run_times, ' spins ', ' total_bet: ', linecount*run_times
     return totalwin*1.0/total_cost
+
     #aver=totalwin*1.0/run_times
     #print 'fangcha', sum(map(lambda win: (win-aver)*(win-aver), allwins))/run_times
 def check():
     for themeid in THEME_CONFIG.keys():
+        bonus,scatter=1,2 if themeid!=ZEUS_THEME else 0,1
         for t in  ('reels_N', 'reels_F', 'reels_W', 'reels_H'):
             if 0 in THEME_CONFIG[themeid][t][0]+THEME_CONFIG[themeid][t][4]:
                 print t,  THEME_CONFIG[themeid][t][0]+THEME_CONFIG[themeid][t][4]
@@ -339,25 +380,24 @@ import traceback
 if __name__=='__main__':
     from sys import argv, exc_info
 
-    check()
+    #check()
     run_times=10000
     try:
         run_times=int(argv[1])
         themeids=map(int, argv[2:]) if len(argv)>2 else THEME_CONFIG.keys()
-        for themeid in themeids:
-            for k in THEME_CONFIG[themeid].keys():
-                if k.startswith('reels_'):
-                    spin_result(themeid,k,run_times=run_times)
     except Exception, e:
         print '|'.join(traceback.format_exception(e.__class__,e,exc_info()[2]))
-        for themeid in THEME_CONFIG.keys():
-            for k in THEME_CONFIG[themeid].keys():
-                if k.startswith('reels_'):
-                    spin_result(themeid,k)
-    global witch_jackpot
-    witch_jackpot=1
-    print '\n\n---------------------------------------------------------------------------'
-    print 'witch jackpot is open for reels_N and reels_H'
-    spin_result(WITCH_THEME,'reels_N',run_times=run_times)
-    spin_result(WITCH_THEME,'reels_H',run_times=run_times)
+        themeid=THEME_CONFIG.keys()
+           
+    for themeid in themeids:
+        for k in THEME_CONFIG[themeid].keys():
+            if k.startswith('reels_'):
+                spin_result(themeid,k,run_times=run_times)
+        if themeid==WITCH_THEME:
+            global witch_jackpot
+            witch_jackpot=1
+            print '\n\n---------------------------------------------------------------------------'
+            print 'witch jackpot is open for reels_N and reels_H'
+            spin_result(WITCH_THEME,'reels_N',run_times=run_times)
+            spin_result(WITCH_THEME,'reels_H',run_times=run_times)
 
