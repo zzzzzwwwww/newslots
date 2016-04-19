@@ -329,8 +329,8 @@ def spin_result(themeid,freespin,run_times=10000):
     print 'total_win %d, total_cost %d, return rate %f' % (totalwin, total_cost, totalwin*1.0/total_cost)
     group= [(k, len(list(v))) for k, v in groupby(allwins, key=lambda x: x>0)]
     print 'max winning streak', max([v for k,v in group if k]+[0]),  ', max losing streak', max([v for k,v in group if not k]+[1])
-    print 'free_spin :', fspin*10./run_times, t_fspin*1.0/run_times, fspin_coins*1.0/run_times
-    print 'bonus_spin :', bspin*10./run_times, t_bspin*1.0/run_times, bspin_coins*1.0/run_times
+    print 'free_spin :', fspin*1./run_times, t_fspin*1./run_times, fspin_coins*1./run_times
+    print 'bonus_spin :', bspin*1./run_times, t_bspin*1./run_times, bspin_coins*1./run_times
     print 'items_count', map(lambda x: x*1.0/run_times, items_count)
     print 'items_count1', map(lambda x: x*1.0/run_times, items_count1)
     print 'big_win: ', map(lambda x: x*1.0/run_times, big_wins)
