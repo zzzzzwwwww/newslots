@@ -20,7 +20,7 @@ def random_reels(themeid,freespin,rows):
     ret = []
     reels = THEME_CONFIG[themeid][freespin]
     i=0
-    for l in rows:     
+    for l in rows:
         idx = random.randint(0,len(reels[i])-1)
         if idx+l<=len(reels[i]):
             ret.append(reels[i][idx:idx+l])
@@ -277,6 +277,10 @@ def spin_core(themeid,freespin,linecount):
     #there is bonus spin in buffalo, no scatter
     if themeid==BUFFALO_THEME:
         bonus,scatter=0,bonus
+    elif themeid==NINJA_THEME:
+        prescatter=sum(j.count(3) for j in itemlist)
+        bonus+=prescatter
+        scatter+=prescatter
     return [itemlist,resultlist,sumreward,bonus,scatter, five, six]
 
 def find_add(conf, to_add, k):
