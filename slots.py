@@ -3,6 +3,12 @@ import random
 from itertools import *
 from themeconf import *
 
+def ninja_get_row_lines(freespin):
+    if freespin=='reels_F':
+        return LINES44433,(4,4,4,3,3)
+    if freespin.startswith('reels_B'):
+        return LINES1, (3,3,3,3,3)
+    return LINES33444, (3,3,4,4,4)
 
 def get_pay_table(themeid):
     return THEME_CONFIG[themeid]['pay']
@@ -10,18 +16,11 @@ def get_pay_table(themeid):
 def get_lines(themeid):
     return ALLLINES[themeid]
 
-def random_reels(themeid,freespin):
+def random_reels(themeid,freespin,rows):
     ret = []
     reels = THEME_CONFIG[themeid][freespin]
     i=0
-    k=THEME_CONFIG[themeid]['rows']
-    if themeid==NINJA_THEME:
-        if freespin=='reels_F':
-            k=(4,4,4,3,3)
-        elif freespin.startswith('reels_B'):
-            k=(5,5,5,5,5)
-
-    for l in k:     
+    for l in rows:     
         idx = random.randint(0,len(reels[i])-1)
         if idx+l<=len(reels[i]):
             ret.append(reels[i][idx:idx+l])
@@ -48,16 +47,21 @@ def spin_core(themeid,freespin,linecount):
     global zeus_bonus_time
     global witch_jackpot
 
+    if themeid!=NINJA_THEME:
+        curlines,rows=ALLLINES[themeid],THEME_CONFIG[themeid]['rows']
+    else:
+        curlines,rows=ninja_get_row_lines(freespin)
+
     paytable=get_pay_table(themeid)
-    itemlist1=random_reels(themeid,freespin)
-    curlines = get_lines(themeid)
+    itemlist1=random_reels(themeid,freespin,rows)
+    
     resultlist = []
     bonus = 0
     sumreward = 0
     scatter = 0
     five=six=0
     # how many columns
-    cols = len(THEME_CONFIG[themeid]['rows'])
+    cols = len(itemlist1)
     if themeid==ZEUS_THEME:
         itemlist=copy.deepcopy(itemlist1)
     else: 
@@ -67,7 +71,7 @@ def spin_core(themeid,freespin,linecount):
     if themeid==NINJA_THEME:
         if freespin in ('reels_N', 'reels_M', 'reels_H'):
             if itemlist[0][1]==6:
-                    itemlist[0]=itemlist=[6]*3
+                    itemlist[0]=itemlist[1]=[6]*3
             elif itemlist[0][0]==6 or itemlist[0][2]==6:
                 if random.random()<0.5:
                     itemlist[0][1]=itemlist[1][1]=6
@@ -76,7 +80,7 @@ def spin_core(themeid,freespin,linecount):
             for i in range(5):
                 r-=THEME_CONFIG[themeid]['BONUS_SPIN_COLUMN'][i]
                 if r<0:
-                    itemlist[i]=[2]*5
+                    itemlist[i]=[2]*3
                     break
         elif freespin=='reels_B_random_item':
             r=random.random()
@@ -87,8 +91,8 @@ def spin_core(themeid,freespin,linecount):
                     k=i
                     cnt=0
                     left=[]
-                    for i in range(5):
-                        for j in range(5):
+                    for i in range(3):
+                        for j in range(3):
                             if itemlist[i][j]==k:
                                 itemlist[i][j]=2
                                 cnt+=1
@@ -99,14 +103,14 @@ def spin_core(themeid,freespin,linecount):
                         for i,j in random.sample(left,cnt):
                             itemlist[i][j]=k
                     break
-        elif freespin=='reels_B_one_item':
+        elif freespin=='reels_B_most_item':
             cnt=[0]*20
-            for i in range(5):
-                for j in range(5):
+            for i in range(3):
+                for j in range(3):
                     cnt[itemlist[i][j]]+=1
             k=cnt.index(max(cnt))
-            for i in range(5):
-                for j in range(5):
+            for i in range(3):
+                for j in range(3):
                     if itemlist[i][j]==k:
                         itemlist[i][j]=2
         
@@ -165,14 +169,14 @@ def spin_core(themeid,freespin,linecount):
                         if itemlist[i][j]!=4 and random.random()<THEME_CONFIG[themeid]['bonus_spin'][k][i*len(itemlist[i])+j]:
                             itemlist[i][j]=4
         elif themeid==NINJA_THEME:
-            if itemlist[0][1]==6 or themelist[0][2]==4:
-                itemlist[0]=itemlist=[4]*4
-            elif themelist[0][0]==4 or themelist[0][3]==4: #big super ninja
+            if itemlist[0][1]==4 or itemlist[0][2]==4:
+                itemlist[0]=itemlist[1]=[4]*4
+            elif itemlist[0][0]==4 or itemlist[0][3]==4: #big super ninja
                 k=random.randint(1,3)
                 if k==3:
                     itemlist[0][1]=itemlist[0][2]=itemlist[1][1]=itemlist[1][2]=itemlist[2][1]=itemlist[2][2]=4
                 elif k==2:
-                    k=1 if themelist[0][0]==4 else 2
+                    k=1 if itemlist[0][0]==4 else 2
                     itemlist[0][k]=itemlist[1][k]=itemlist[2][k]=4
             
 
@@ -229,7 +233,11 @@ def spin_core(themeid,freespin,linecount):
         longest_wild=0
         zeus_wild=1
         for j in range(cols):
-            k = itemlist[j][curlines[i][j]]
+            try:
+                k = itemlist[j][curlines[i][j]]
+            except:
+                print itemlist,freespin, j, cols, curlines
+                exit()
             # -2 -3 -4 -5
             if themeid==ZEUS_THEME and k<0:
                 zeus_wild*=-k
@@ -277,7 +285,13 @@ def find_add(conf, to_add, k):
             to_add[i]+=1
 
 def spin_result(themeid,freespin,run_times=10000):
-    linecount=len(ALLLINES[themeid])
+    if themeid!=NINJA_THEME:
+        lines=ALLLINES[themeid]
+        linecount=len(lines)
+        rows=THEME_CONFIG[themeid]['rows']
+    else:
+        lines,rows=ninja_get_row_lines(freespin)
+        linecount=len(lines)
     total_cost=run_times*linecount
     totalwin=max_reward=scatter_times=bonus_times=win_times=0
     bigwin=megawin=superwin=0
@@ -292,7 +306,7 @@ def spin_result(themeid,freespin,run_times=10000):
     win_strip_count=0
     win_strip_winning=[0]*len(WIN_STRIP_WINNING)
     win_strip_win=0
-    rows=THEME_CONFIG[themeid]['rows']
+    
     pos_count=[[0]*r for r in rows]
     pos_count1=[0]*len(POSITION_COUNT)
     cnt=[[[0]*_ for _ in rows] for i in range(len(POSITION_COUNT))]
@@ -384,7 +398,7 @@ def spin_result(themeid,freespin,run_times=10000):
         vst=[[0]*r for r in rows]
         for line, longest in ret[1]:
             for col in range(longest):
-                row=ALLLINES[themeid][line][col]
+                row=lines[line][col]
                 if not vst[col][row]:
                     pos_count[col][row]+=1
                     items_count1[ret[0][col][row]]+=1
@@ -393,7 +407,7 @@ def spin_result(themeid,freespin,run_times=10000):
             vst=[[0]*_ for _ in rows]
             for line,longest in ret[1]:
                 for col in range(longest):
-                    row=ALLLINES[themeid][line][col]
+                    row=lines[line][col]
                     if not vst[col][row]:
                         cnt[t][col][row]+=1
                         vst[col][row]=1
