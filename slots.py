@@ -14,7 +14,14 @@ def random_reels(themeid,freespin):
     ret = []
     reels = THEME_CONFIG[themeid][freespin]
     i=0
-    for l in THEME_CONFIG[themeid]['rows']:
+    k=THEME_CONFIG[themeid]['rows']
+    if themeid==NINJA_THEME:
+        if freespin=='reels_F':
+            k=(4,4,4,3,3)
+        elif freespin.startswith('reels_B'):
+            k=(5,5,5,5,5)
+
+    for l in k:     
         idx = random.randint(0,len(reels[i])-1)
         if idx+l<=len(reels[i]):
             ret.append(reels[i][idx:idx+l])
@@ -56,6 +63,53 @@ def spin_core(themeid,freespin,linecount):
     else: 
         itemlist=[map(lambda x:x-1, k) for k in itemlist1]
         if themeid==WITCH_THEME: itemlist=[[y if y!=4 else 2 for y in x] for x in itemlist]
+        elif themeid==NINJA_THEME:itemlist=[[y-1 if y in (5,7) else y for y in x] for x in itemlist] #big change into normal
+    if themeid==NINJA_THEME:
+        if freespin in ('reels_N', 'reels_M', 'reels_H'):
+            if itemlist[0][1]==6:
+                    itemlist[0]=itemlist=[6]*3
+            elif itemlist[0][0]==6 or itemlist[0][2]==6:
+                if random.random()<0.5:
+                    itemlist[0][1]=itemlist[1][1]=6
+        elif freespin=='reels_B_whole_column':
+            r=random.random()
+            for i in range(5):
+                r-=THEME_CONFIG[themeid]['BONUS_SPIN_COLUMN'][i]
+                if r<0:
+                    itemlist[i]=[2]*5
+                    break
+        elif freespin=='reels_B_random_item':
+            r=random.random()
+            x=THEME_CONFIG[themeid]['BONUS_SPIN_ITEM']
+            for i in range(len(x)):
+                r-=k[i]
+                if r<0:
+                    k=i
+                    cnt=0
+                    left=[]
+                    for i in range(5):
+                        for j in range(5):
+                            if itemlist[i][j]==k:
+                                itemlist[i][j]=2
+                                cnt+=1
+                            elif itemlist[i][j]!=2:
+                                left.append((i,j))
+                    if cnt<3:
+                        cnt=3-cnt
+                        for i,j in random.sample(left,cnt):
+                            itemlist[i][j]=k
+                    break
+        elif freespin=='reels_B_one_item':
+            cnt=[0]*20
+            for i in range(5):
+                for j in range(5):
+                    cnt[itemlist[i][j]]+=1
+            k=cnt.index(max(cnt))
+            for i in range(5):
+                for j in range(5):
+                    if itemlist[i][j]==k:
+                        itemlist[i][j]=2
+        
 
     if freespin=='reels_B':
         if themeid==ZEUS_THEME:
@@ -110,6 +164,18 @@ def spin_core(themeid,freespin,linecount):
                     for j in range(len(itemlist[i])):
                         if itemlist[i][j]!=4 and random.random()<THEME_CONFIG[themeid]['bonus_spin'][k][i*len(itemlist[i])+j]:
                             itemlist[i][j]=4
+        elif themeid==NINJA_THEME:
+            if itemlist[0][1]==6 or themelist[0][2]==4:
+                itemlist[0]=itemlist=[4]*4
+            elif themelist[0][0]==4 or themelist[0][3]==4: #big super ninja
+                k=random.randint(1,3)
+                if k==3:
+                    itemlist[0][1]=itemlist[0][2]=itemlist[1][1]=itemlist[1][2]=itemlist[2][1]=itemlist[2][2]=4
+                elif k==2:
+                    k=1 if themelist[0][0]==4 else 2
+                    itemlist[0][k]=itemlist[1][k]=itemlist[2][k]=4
+            
+
 
     elif freespin=='reels_W':
             if themeid==WITCH_THEME:
@@ -139,7 +205,7 @@ def spin_core(themeid,freespin,linecount):
                                 break
                         else:
                             itemlist[col][0]=-1
-
+        
     elif freespin=='reels_H':
         if themeid==WITCH_THEME:
             if witch_jackpot:
@@ -273,9 +339,9 @@ def spin_result(themeid,freespin,run_times=10000):
             six+=1
         if ret[3]>=3:
             bonus_times+=1
-            if themeid==ZEUS_THEME:
-                k=THEME_CONFIG[ZEUS_THEME]['pay'][0][ret[3]-1]
-                a=[spin_core(themeid,'reels_B',linecount)[2] for f in range(k)]
+            if themeid in (ZEUS_THEME, NINJA_THEME):
+                k=THEME_CONFIG[themeid]['pay'][0][ret[3]-1]
+                a=[spin_core(themeid,'reels_B',linecount)[2] for f in range(k)] if themeid==ZEUS_THEME else [spin_core(themeid,'reels_B_whole_column',linecount)[2] for f in range(k)] 
                 bspin+=1
                 t_bspin+=k
                 s=sum(a)
