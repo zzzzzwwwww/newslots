@@ -85,24 +85,14 @@ def spin_core(themeid,freespin,linecount):
         elif freespin=='reels_B_random_item':
             r=random.random()
             x=THEME_CONFIG[themeid]['BONUS_SPIN_ITEM']
-            for i in range(len(x)):
-                r-=x[i]
-                if r<0:
-                    k=i
-                    cnt=0
-                    left=[]
-                    for i in range(3):
-                        for j in range(3):
-                            if itemlist[i][j]==k:
-                                itemlist[i][j]=2
-                                cnt+=1
-                            elif itemlist[i][j]!=2:
-                                left.append((i,j))
-                    if cnt<3:
-                        cnt=3-cnt
-                        for i,j in random.sample(left,cnt):
-                            itemlist[i][j]=k
-                    break
+            left=[]
+            for i in range(3):
+                for j in range(3):
+                    if itemlist[i][j]!=2:
+                        left.append((i,j))
+            
+            for i,j in random.sample(left,min(3,len(left))):
+                itemlist[i][j]=2
         elif freespin=='reels_B_most_item':
             cnt=[0]*20
             for i in range(3):
