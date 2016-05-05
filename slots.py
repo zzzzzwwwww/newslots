@@ -236,7 +236,7 @@ def spin_core(themeid,freespin,linecount):
             try:
                 k = itemlist[j][curlines[i][j]]
             except:
-                print itemlist,freespin, j, cols, curlines
+                print itemlist,freespin, j, cols, curlines,i,len(curlines), linecount,len(LINES1),len(LINES33444),len(LINES44433)
                 exit()
             # -2 -3 -4 -5
             if themeid==ZEUS_THEME and k<0:
@@ -359,7 +359,7 @@ def spin_result(themeid,freespin,run_times=10000):
             bonus_times+=1
             if themeid in (ZEUS_THEME, NINJA_THEME):
                 k=THEME_CONFIG[themeid]['pay'][0][ret[3]-1]
-                a=[spin_core(themeid,'reels_B',linecount)[2] for f in range(k)] if themeid==ZEUS_THEME else [spin_core(themeid,'reels_B_whole_column',linecount)[2] for f in range(k)] 
+                a=[spin_core(themeid,'reels_B',linecount)[2] for f in range(k)] if themeid==ZEUS_THEME else [spin_core(themeid,'reels_B_whole_column',len(LINES1))[2] for f in range(k)] 
                 bspin+=1
                 t_bspin+=k
                 s=sum(a)
