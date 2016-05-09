@@ -81,7 +81,6 @@ def spin_core(themeid,freespin,linecount):
                 if THEME_CONFIG[themeid]['BONUS_SPIN_COLUMN'][i]<random.random():
                     itemlist[i]=[2]*3
                     flag=1
-                    break
             if flag==0:
                 itemlist[random.randint(0,4)]=[2]*3
         elif freespin=='reels_B_random_item':
