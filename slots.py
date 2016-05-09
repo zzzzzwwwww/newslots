@@ -76,12 +76,14 @@ def spin_core(themeid,freespin,linecount):
                 if random.random()<0.5:
                     itemlist[0][1]=itemlist[1][1]=6
         elif freespin=='reels_B_whole_column':
-            r=random.random()
+            flag=0
             for i in range(5):
-                r-=THEME_CONFIG[themeid]['BONUS_SPIN_COLUMN'][i]
-                if r<0:
+                if THEME_CONFIG[themeid]['BONUS_SPIN_COLUMN'][i]<random.random():
                     itemlist[i]=[2]*3
+                    flag=1
                     break
+            if flag==0:
+                itemlist[random.randint(0,4)]=[2]*3
         elif freespin=='reels_B_random_item':
             x=THEME_CONFIG[themeid]['BONUS_SPIN_ITEM']
 	    y=THEME_CONFIG[themeid]['BONUS_SPIN_MIN_ITEM']
