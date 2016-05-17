@@ -167,7 +167,7 @@ def spin_core(themeid,freespin,linecount):
                             itemlist[i][j]=4
         elif themeid==NINJA_THEME:
             if itemlist[0][1]==4 or itemlist[0][2]==4:
-                itemlist[0]=itemlist[1]=[4]*4
+                itemlist[0]=itemlist[1]=itemlist[2]=[4]*4
             elif itemlist[0][0]==4 or itemlist[0][3]==4: #big super ninja
                 k=random.randint(1,3)
                 if k==3:
@@ -436,7 +436,7 @@ def spin_result(themeid,freespin,run_times=10000):
     print 'max winning streak', max([v for k,v in group if k]+[0]),  ', max losing streak', max([v for k,v in group if not k]+[1])
     print 'free_spin :', fspin*1./run_times, t_fspin*1./run_times, fspin_coins*1./run_times
     print 'bonus_spin :', bspin*1./run_times, t_bspin*1./run_times, bspin_coins*1./run_times
-    print 'items_count', map(lambda x: x*1.0/run_times, items_count)
+    print 'items_count', map(lambda x: x*1.0/run_times, items_count), sum(items_count)/run_times
     print 'items_count1', map(lambda x: x*1.0/run_times, items_count1)
     print 'big_win: ', map(lambda x: x*1.0/run_times, big_wins)
     print 'win_strip_times: ', map(lambda x: x*1.0/run_times, win_strip_times)
